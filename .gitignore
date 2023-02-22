@@ -1,0 +1,6 @@
+﻿.VSCodeCounter/
+.vscode/
+bin/
+dumps/*.txt
+*.out
+Plugins/*.so
