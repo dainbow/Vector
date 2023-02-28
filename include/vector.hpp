@@ -6,8 +6,91 @@
 
 #include "utilities.hpp"
 
-template <class T>
+template <typename T>
 class Vector {
+  class iterator : public std::iterator<std::random_access_iterator_tag, T> {
+   public:
+    iterator();
+    iterator(T* ptr);
+    iterator(iterator&& it) = default;
+    iterator(const iterator& it) = default;
+
+    ~iterator() = default;
+
+    iterator& operator=(iterator&& it) = default;
+    iterator& operator=(const iterator& it) = default;
+
+    bool operator==(const iterator& it) const;
+    bool operator!=(const iterator& it) const;
+    bool operator<(const iterator& it) const;
+    bool operator>(const iterator& it) const;
+    bool operator>=(const iterator& it) const;
+    bool operator<=(const iterator& it) const;
+
+    T& operator*() const;
+
+    iterator& operator++();
+    iterator operator++(int);
+
+    iterator& operator--();
+    iterator operator--(int);
+
+    iterator& operator+=(const std::ptrdiff_t diff);
+    iterator& operator-=(const std::ptrdiff_t diff);
+
+    iterator operator+(const std::ptrdiff_t diff) const;
+    iterator operator-(const std::ptrdiff_t diff) const;
+
+    std::ptrdiff_t operator-(const iterator& it) const;
+
+    T& operator[](const std::ptrdiff_t diff) const;
+
+   private:
+    T* ptr_;
+  };
+
+  class const_iterator
+      : public std::iterator<std::random_access_iterator_tag, T> {
+   public:
+    const_iterator();
+    const_iterator(const T* ptr);
+    const_iterator(const_iterator&& it) = default;
+    const_iterator(const const_iterator& it) = default;
+
+    ~const_iterator() = default;
+
+    const_iterator& operator=(const_iterator&& it) = default;
+    const_iterator& operator=(const const_iterator& it) = default;
+
+    bool operator==(const const_iterator& it) const;
+    bool operator!=(const const_iterator& it) const;
+    bool operator<(const const_iterator& it) const;
+    bool operator>(const const_iterator& it) const;
+    bool operator>=(const const_iterator& it) const;
+    bool operator<=(const const_iterator& it) const;
+
+    const T& operator*() const;
+
+    const_iterator& operator++();
+    const_iterator operator++(int);
+
+    const_iterator& operator--();
+    const_iterator operator--(int);
+
+    const_iterator& operator+=(const std::ptrdiff_t diff);
+    const_iterator& operator-=(const std::ptrdiff_t diff);
+
+    const_iterator operator+(const std::ptrdiff_t diff) const;
+    const_iterator operator-(const std::ptrdiff_t diff) const;
+
+    std::ptrdiff_t operator-(const const_iterator& it) const;
+
+    const T& operator[](const std::ptrdiff_t diff) const;
+
+   private:
+    const T* ptr_;
+  };
+
  public:
   Vector();
 
@@ -49,6 +132,12 @@ class Vector {
   T* data();
   const T* data() const;
 
+  iterator begin();
+  iterator end();
+
+  const_iterator cbegin() const;
+  const_iterator cend() const;
+
  private:
   const static uint64_t base_capacity = 8;
   const static uint64_t base_capacity_multiplier_ = 2;
@@ -61,6 +150,93 @@ class Vector {
 
 template <>
 class Vector<bool> {
+  class bit_iterator {
+   public:
+    using iterator_category = std::random_access_iterator_tag;
+    using difference_type = std::ptrdiff_t;
+    using value_type = bool;
+
+    iterator();
+    iterator(T* ptr);
+    iterator(iterator&& it) = default;
+    iterator(const iterator& it) = default;
+
+    ~iterator() = default;
+
+    iterator& operator=(iterator&& it) = default;
+    iterator& operator=(const iterator& it) = default;
+
+    bool operator==(const iterator& it) const;
+    bool operator!=(const iterator& it) const;
+    bool operator<(const iterator& it) const;
+    bool operator>(const iterator& it) const;
+    bool operator>=(const iterator& it) const;
+    bool operator<=(const iterator& it) const;
+
+    T& operator*() const;
+
+    iterator& operator++();
+    iterator operator++(int);
+
+    iterator& operator--();
+    iterator operator--(int);
+
+    iterator& operator+=(const std::ptrdiff_t diff);
+    iterator& operator-=(const std::ptrdiff_t diff);
+
+    iterator operator+(const std::ptrdiff_t diff) const;
+    iterator operator-(const std::ptrdiff_t diff) const;
+
+    std::ptrdiff_t operator-(const iterator& it) const;
+
+    T& operator[](const std::ptrdiff_t diff) const;
+
+   private:
+    T* ptr_;
+  };
+
+  class const_iterator
+      : public std::iterator<std::random_access_iterator_tag, T> {
+   public:
+    const_iterator();
+    const_iterator(const T* ptr);
+    const_iterator(const_iterator&& it) = default;
+    const_iterator(const const_iterator& it) = default;
+
+    ~const_iterator() = default;
+
+    const_iterator& operator=(const_iterator&& it) = default;
+    const_iterator& operator=(const const_iterator& it) = default;
+
+    bool operator==(const const_iterator& it) const;
+    bool operator!=(const const_iterator& it) const;
+    bool operator<(const const_iterator& it) const;
+    bool operator>(const const_iterator& it) const;
+    bool operator>=(const const_iterator& it) const;
+    bool operator<=(const const_iterator& it) const;
+
+    const T& operator*() const;
+
+    const_iterator& operator++();
+    const_iterator operator++(int);
+
+    const_iterator& operator--();
+    const_iterator operator--(int);
+
+    const_iterator& operator+=(const std::ptrdiff_t diff);
+    const_iterator& operator-=(const std::ptrdiff_t diff);
+
+    const_iterator operator+(const std::ptrdiff_t diff) const;
+    const_iterator operator-(const std::ptrdiff_t diff) const;
+
+    std::ptrdiff_t operator-(const const_iterator& it) const;
+
+    const T& operator[](const std::ptrdiff_t diff) const;
+
+   private:
+    const T* ptr_;
+  };
+
   class BitRef {
    public:
     BitRef(uint64_t* data, const uint8_t shift);
@@ -125,10 +301,230 @@ class Vector<bool> {
   uint64_t* data_;
 };
 
-template <class T>
+template <typename T>
+Vector<T>::iterator::iterator() : ptr_(nullptr) {}
+
+template <typename T>
+Vector<T>::const_iterator::const_iterator() : ptr_(nullptr) {}
+
+template <typename T>
+Vector<T>::iterator::iterator(T* ptr) : ptr_(ptr) {}
+
+template <typename T>
+Vector<T>::const_iterator::const_iterator(const T* ptr) : ptr_(ptr) {}
+
+template <typename T>
+bool Vector<T>::iterator::operator==(const iterator& it) const {
+  return ptr_ == it.ptr_;
+}
+
+template <typename T>
+bool Vector<T>::const_iterator::operator==(const const_iterator& it) const {
+  return ptr_ == it.ptr_;
+}
+
+template <typename T>
+bool Vector<T>::iterator::operator!=(const iterator& it) const {
+  return ptr_ != it.ptr_;
+}
+
+template <typename T>
+bool Vector<T>::const_iterator::operator!=(const const_iterator& it) const {
+  return ptr_ != it.ptr_;
+}
+
+template <typename T>
+bool Vector<T>::iterator::operator<(const iterator& it) const {
+  return ptr_ < it.ptr_;
+}
+
+template <typename T>
+bool Vector<T>::const_iterator::operator<(const const_iterator& it) const {
+  return ptr_ < it.ptr_;
+}
+
+template <typename T>
+bool Vector<T>::iterator::operator>(const iterator& it) const {
+  return ptr_ > it.ptr_;
+}
+
+template <typename T>
+bool Vector<T>::const_iterator::operator>(const const_iterator& it) const {
+  return ptr_ > it.ptr_;
+}
+
+template <typename T>
+bool Vector<T>::iterator::operator>=(const iterator& it) const {
+  return ptr_ >= it.ptr_;
+}
+
+template <typename T>
+bool Vector<T>::const_iterator::operator>=(const const_iterator& it) const {
+  return ptr_ >= it.ptr_;
+}
+
+template <typename T>
+bool Vector<T>::iterator::operator<=(const iterator& it) const {
+  return ptr_ <= it.ptr_;
+}
+
+template <typename T>
+bool Vector<T>::const_iterator::operator<=(const const_iterator& it) const {
+  return ptr_ <= it.ptr_;
+}
+
+template <typename T>
+T& Vector<T>::iterator::operator*() const {
+  return *ptr_;
+}
+
+template <typename T>
+const T& Vector<T>::const_iterator::operator*() const {
+  return *ptr_;
+}
+
+template <typename T>
+Vector<T>::iterator& Vector<T>::iterator::operator++() {
+  ++ptr_;
+
+  return *this;
+}
+
+template <typename T>
+Vector<T>::const_iterator& Vector<T>::const_iterator::operator++() {
+  ++ptr_;
+
+  return *this;
+}
+
+template <typename T>
+Vector<T>::iterator Vector<T>::iterator::operator++(int) {
+  ptr_++;
+
+  return *this;
+}
+
+template <typename T>
+Vector<T>::const_iterator Vector<T>::const_iterator::operator++(int) {
+  ptr_++;
+
+  return *this;
+}
+
+template <typename T>
+Vector<T>::iterator& Vector<T>::iterator::operator--() {
+  --ptr_;
+
+  return *this;
+}
+
+template <typename T>
+Vector<T>::const_iterator& Vector<T>::const_iterator::operator--() {
+  --ptr_;
+
+  return *this;
+}
+
+template <typename T>
+Vector<T>::iterator Vector<T>::iterator::operator--(int) {
+  ptr_--;
+
+  return *this;
+}
+
+template <typename T>
+Vector<T>::const_iterator Vector<T>::const_iterator::operator--(int) {
+  ptr_--;
+
+  return *this;
+}
+
+template <typename T>
+Vector<T>::iterator& Vector<T>::iterator::operator+=(
+    const std::ptrdiff_t diff) {
+  ptr_ += diff;
+}
+
+template <typename T>
+Vector<T>::const_iterator& Vector<T>::const_iterator::operator+=(
+    const std::ptrdiff_t diff) {
+  ptr_ += diff;
+}
+
+template <typename T>
+Vector<T>::iterator& Vector<T>::iterator::operator-=(
+    const std::ptrdiff_t diff) {
+  ptr_ -= diff;
+}
+
+template <typename T>
+Vector<T>::const_iterator& Vector<T>::const_iterator::operator-=(
+    const std::ptrdiff_t diff) {
+  ptr_ -= diff;
+}
+
+template <typename T>
+Vector<T>::iterator Vector<T>::iterator::operator+(
+    const std::ptrdiff_t diff) const {
+  iterator temp = *this;
+  temp += diff;
+
+  return temp;
+}
+
+template <typename T>
+Vector<T>::const_iterator Vector<T>::const_iterator::operator+(
+    const std::ptrdiff_t diff) const {
+  const_iterator temp = *this;
+  temp += diff;
+
+  return temp;
+}
+
+template <typename T>
+Vector<T>::iterator Vector<T>::iterator::operator-(
+    const std::ptrdiff_t diff) const {
+  iterator temp = *this;
+  temp -= diff;
+
+  return temp;
+}
+
+template <typename T>
+Vector<T>::const_iterator Vector<T>::const_iterator::operator-(
+    const std::ptrdiff_t diff) const {
+  const_iterator temp = *this;
+  temp -= diff;
+
+  return temp;
+}
+
+template <typename T>
+std::ptrdiff_t Vector<T>::iterator::operator-(const iterator& it) const {
+  return ptr_ - it.ptr_;
+}
+
+template <typename T>
+std::ptrdiff_t Vector<T>::const_iterator::operator-(
+    const const_iterator& it) const {
+  return ptr_ - it.ptr_;
+}
+
+template <typename T>
+T& Vector<T>::iterator::operator[](const std::ptrdiff_t diff) const {
+  return ptr_[diff];
+}
+
+template <typename T>
+const T& Vector<T>::const_iterator::operator[](
+    const std::ptrdiff_t diff) const {
+  return ptr_[diff];
+}
+
+template <typename T>
 Vector<T>::Vector() : size_(0), capacity_(0), data_(nullptr) {}
 
-template <class T>
+template <typename T>
 Vector<T>::Vector(const uint64_t size, T&& elem)
     : size_(size),
       capacity_(base_capacity_multiplier_ * size),
@@ -136,7 +532,7 @@ Vector<T>::Vector(const uint64_t size, T&& elem)
   Construct(data(), 0, size_, elem);
 }
 
-template <class T>
+template <typename T>
 Vector<T>::Vector(const Vector<T>& vector)
     : size_(vector.size_),
       capacity_(vector.capacity_),
@@ -144,13 +540,13 @@ Vector<T>::Vector(const Vector<T>& vector)
   Construct(data(), 0, size_, vector.data());
 }
 
-template <class T>
+template <typename T>
 Vector<T>::Vector(Vector<T>&& vector)
     : size_(vector.size_), capacity_(vector.capacity_), data_(nullptr) {
   std::swap(data_, vector.data_);
 }
 
-template <class T>
+template <typename T>
 Vector<T>& Vector<T>::operator=(const Vector<T>& vector) {
   if (vector.size_ < size_) {
     Assign(data(), 0, vector.size_, vector.data());
@@ -165,13 +561,13 @@ Vector<T>& Vector<T>::operator=(const Vector<T>& vector) {
   size_ = vector.size_;
 }
 
-template <class T>
+template <typename T>
 Vector<T>& Vector<T>::operator=(Vector<T>&& vector) {
   ~Vector();
   Vector(std::forward<Vector<T>>(vector));
 }
 
-template <class T>
+template <typename T>
 Vector<T>::~Vector() {
   if (data_) {
     Destruct(data(), 0, size_);
@@ -183,22 +579,22 @@ Vector<T>::~Vector() {
   data_ = nullptr;
 }
 
-template <class T>
+template <typename T>
 bool Vector<T>::empty() const {
   return (size_ == 0);
 }
 
-template <class T>
+template <typename T>
 uint64_t Vector<T>::size() const {
   return size_;
 }
 
-template <class T>
+template <typename T>
 uint64_t Vector<T>::capacity() const {
   return capacity_;
 }
 
-template <class T>
+template <typename T>
 void Vector<T>::reserve(uint64_t new_capacity) {
   if (new_capacity <= capacity_) {
     return;
@@ -210,7 +606,7 @@ void Vector<T>::reserve(uint64_t new_capacity) {
   capacity_ = new_capacity;
 }
 
-template <class T>
+template <typename T>
 void Vector<T>::resize(const uint64_t new_size, T&& elem) {
   if (new_size < size_) {
     Destruct(data(), new_size, size_);
@@ -223,7 +619,7 @@ void Vector<T>::resize(const uint64_t new_size, T&& elem) {
   size_ = new_size;
 }
 
-template <class T>
+template <typename T>
 void Vector<T>::shrink_to_fit() {
   if (size_ == capacity_) {
     return;
@@ -233,13 +629,13 @@ void Vector<T>::shrink_to_fit() {
   capacity_ = size_;
 }
 
-template <class T>
+template <typename T>
 void Vector<T>::clear() {
   Destruct(data(), 0, size_);
   size_ = 0;
 }
 
-template <class T>
+template <typename T>
 void Vector<T>::push_back(T&& element) {
   if (capacity_ == 0) {
     reserve(base_capacity);
@@ -250,71 +646,91 @@ void Vector<T>::push_back(T&& element) {
   data()[size_++] = std::forward<T>(element);
 }
 
-template <class T>
+template <typename T>
 void Vector<T>::pop_back() {
   assert(size_);
 
   data()[--size_].~T();
 }
 
-template <class T>
+template <typename T>
 T& Vector<T>::at(const uint64_t idx) {
   assert(idx < size_);
 
   return data()[idx];
 }
 
-template <class T>
+template <typename T>
 const T& Vector<T>::at(const uint64_t idx) const {
   assert(idx < size_);
 
   return data()[idx];
 }
 
-template <class T>
+template <typename T>
 T& Vector<T>::operator[](const uint64_t idx) {
   return data()[idx];
 }
 
-template <class T>
+template <typename T>
 const T& Vector<T>::operator[](const uint64_t idx) const {
   return data()[idx];
 }
 
-template <class T>
+template <typename T>
 T& Vector<T>::front() {
   assert(size_);
 
   return data()[0];
 }
 
-template <class T>
+template <typename T>
 const T& Vector<T>::front() const {
   assert(size_);
 
   return data()[0];
 }
 
-template <class T>
+template <typename T>
 T& Vector<T>::back() {
   assert(size_);
 
   return data()[size_ - 1];
 }
 
-template <class T>
+template <typename T>
 const T& Vector<T>::back() const {
   assert(size_);
 
   return data()[size_ - 1];
 }
 
-template <class T>
+template <typename T>
 T* Vector<T>::data() {
   return reinterpret_cast<T*>(data_);
 }
 
-template <class T>
+template <typename T>
 const T* Vector<T>::data() const {
   return reinterpret_cast<const T*>(data_);
+}
+
+template <typename T>
+Vector<T>::iterator Vector<T>::begin() {
+  return {data()};
+}
+
+template <typename T>
+Vector<T>::iterator Vector<T>::end() {
+  return {data() + size_};
+}
+
+template <typename T>
+Vector<T>::const_iterator Vector<T>::cbegin() const {
+  return {data()};
+}
+
+template <typename T>
+Vector<T>::const_iterator Vector<T>::cend() const {
+  return {data() + size_};
 }

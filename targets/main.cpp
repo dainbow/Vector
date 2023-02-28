@@ -1,4 +1,5 @@
 #include "../include/main.hpp"
+
 #include <vector>
 
 int main() {
@@ -7,8 +8,16 @@ int main() {
   vector.push_back(228);
   vector.push_back(777);
 
-  for (uint64_t cur_idx = 0; cur_idx < vector.size(); cur_idx++) {
-    std::cout << vector[cur_idx] << " ";
+  std::vector<bool> vect;
+
+  auto it = vect.begin();
+
+  std::_Bit_iterator'
+
+  std::iterator_traits<std::vector<bool>::iterator>::pointer;
+
+  for (auto& elem : vector) {
+    std::cout << elem << " ";
   }
   std::cout << std::endl;
 
