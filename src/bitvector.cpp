@@ -1,20 +1,369 @@
 #include "../include/vector.hpp"
 
-Vector<bool>::BitRef::BitRef(uint64_t* data, const uint8_t shift)
-    : data_(data), shift_(shift) {}
+Vector<bool>::bit_iterator::bit_iterator() : BitRef() {}
 
-Vector<bool>::BitRef& Vector<bool>::BitRef::operator=(const bool elem) {
-  if (elem == 0) {
-    *data_ &= ~(1 << shift_);
-  } else {
-    *data_ |= (1 << shift_);
+Vector<bool>::const_bit_iterator::const_bit_iterator() : ConstBitRef() {}
+
+Vector<bool>::bit_iterator::bit_iterator(uint64_t* ptr, uint64_t shift)
+    : BitRef(ptr, shift) {}
+
+Vector<bool>::const_bit_iterator::const_bit_iterator(const uint64_t* ptr,
+                                                     uint64_t shift)
+    : ConstBitRef(ptr, shift) {}
+
+Vector<bool>::bit_iterator::bit_iterator(const BitRef& ref) : BitRef(ref) {}
+
+Vector<bool>::const_bit_iterator::const_bit_iterator(const ConstBitRef& ref)
+    : ConstBitRef(ref) {}
+
+Vector<bool>::bit_iterator::bit_iterator(pointer ptr) : BitRef(*ptr) {}
+
+Vector<bool>::const_bit_iterator::const_bit_iterator(pointer ptr)
+    : ConstBitRef(*ptr) {}
+
+bool Vector<bool>::bit_iterator::operator==(const Vector<bool>::bit_iterator& it) const {
+  return (data_ == it.data_) && (shift_ == it.shift_);
+}
+
+bool Vector<bool>::const_bit_iterator::operator==(const Vector<bool>::const_bit_iterator& it) const {
+  return (data_ == it.data_) && (shift_ == it.shift_);
+}
+
+bool Vector<bool>::bit_iterator::operator!=(const Vector<bool>::bit_iterator& it) const {
+  return (data_ != it.data_) || (shift_ != it.shift_);
+}
+
+bool Vector<bool>::const_bit_iterator::operator!=(const Vector<bool>::const_bit_iterator& it) const {
+  return (data_ != it.data_) || (shift_ != it.shift_);
+}
+
+bool Vector<bool>::bit_iterator::operator<(const Vector<bool>::bit_iterator& it) const {
+  return (data_ < it.data_) || ((data_ == it.data_) && (shift_ < it.shift_));
+}
+
+bool Vector<bool>::const_bit_iterator::operator<(const Vector<bool>::const_bit_iterator& it) const {
+  return (data_ < it.data_) || ((data_ == it.data_) && (shift_ < it.shift_));
+}
+
+bool Vector<bool>::bit_iterator::operator>(const Vector<bool>::bit_iterator& it) const {
+  return (data_ > it.data_) || ((data_ == it.data_) && (shift_ > it.shift_));
+}
+
+bool Vector<bool>::const_bit_iterator::operator>(const Vector<bool>::const_bit_iterator& it) const {
+  return (data_ > it.data_) || ((data_ == it.data_) && (shift_ > it.shift_));
+}
+
+bool Vector<bool>::bit_iterator::operator>=(const Vector<bool>::bit_iterator& it) const {
+  return (data_ > it.data_) || ((data_ == it.data_) && (shift_ >= it.shift_));
+}
+
+bool Vector<bool>::const_bit_iterator::operator>=(const Vector<bool>::const_bit_iterator& it) const {
+  return (data_ > it.data_) || ((data_ == it.data_) && (shift_ >= it.shift_));
+}
+
+bool Vector<bool>::bit_iterator::operator<=(const Vector<bool>::bit_iterator& it) const {
+  return (data_ < it.data_) || ((data_ == it.data_) && (shift_ <= it.shift_));
+}
+
+bool Vector<bool>::const_bit_iterator::operator<=(const Vector<bool>::const_bit_iterator& it) const {
+  return (data_ < it.data_) || ((data_ == it.data_) && (shift_ <= it.shift_));
+}
+
+Vector<bool>::bit_iterator::reference Vector<bool>::bit_iterator::operator*() {
+  return *this;
+}
+
+Vector<bool>::const_bit_iterator::reference
+Vector<bool>::const_bit_iterator::operator*() const {
+  return *this;
+}
+
+Vector<bool>::bit_iterator& Vector<bool>::bit_iterator::operator++() {
+  ++shift_;
+
+  if (shift_ == bit_divider) {
+    shift_ = 0;
+    data_++;
   }
 
   return *this;
 }
 
-Vector<bool>::BitRef::operator bool() {
-  return ((*data_) & (1 << shift_)) >> shift_;
+Vector<bool>::const_bit_iterator&
+Vector<bool>::const_bit_iterator::operator++() {
+  ++shift_;
+
+  if (shift_ == bit_divider) {
+    shift_ = 0;
+    data_++;
+  }
+
+  return *this;
+}
+
+Vector<bool>::bit_iterator Vector<bool>::bit_iterator::operator++(int) {
+  shift_++;
+
+  if (shift_ == bit_divider) {
+    shift_ = 0;
+    data_++;
+  }
+
+  return *this;
+}
+
+Vector<bool>::const_bit_iterator Vector<bool>::const_bit_iterator::operator++(
+    int) {
+  shift_++;
+
+  if (shift_ == bit_divider) {
+    shift_ = 0;
+    data_++;
+  }
+
+  return *this;
+}
+
+Vector<bool>::bit_iterator& Vector<bool>::bit_iterator::operator--() {
+  --shift_;
+
+  if (shift_ == UINT64_MAX) {
+    shift_ = 63;
+    data_--;
+  }
+
+  return *this;
+}
+
+Vector<bool>::const_bit_iterator&
+Vector<bool>::const_bit_iterator::operator--() {
+  --shift_;
+
+  if (shift_ == UINT64_MAX) {
+    shift_ = 63;
+    data_--;
+  }
+
+  return *this;
+}
+
+Vector<bool>::bit_iterator Vector<bool>::bit_iterator::operator--(int) {
+  shift_--;
+
+  if (shift_ == UINT64_MAX) {
+    shift_ = 63;
+    data_--;
+  }
+
+  return *this;
+}
+
+Vector<bool>::const_bit_iterator Vector<bool>::const_bit_iterator::operator--(
+    int) {
+  shift_--;
+
+  if (shift_ == UINT64_MAX) {
+    shift_ = 63;
+    data_--;
+  }
+
+  return *this;
+}
+
+Vector<bool>::bit_iterator& Vector<bool>::bit_iterator::operator+=(
+    const difference_type diff) {
+  shift_ += diff;
+
+  data_ += (shift_ / bit_divider);
+  shift_ %= bit_divider;
+
+  return *this;
+}
+
+Vector<bool>::const_bit_iterator& Vector<bool>::const_bit_iterator::operator+=(
+    const difference_type diff) {
+  shift_ += diff;
+
+  data_ += (shift_ / bit_divider);
+  shift_ %= bit_divider;
+
+  return *this;
+}
+
+Vector<bool>::bit_iterator& Vector<bool>::bit_iterator::operator-=(
+    difference_type diff) {
+  if (shift_ >= diff) {
+    shift_ -= diff;
+
+    return *this;
+  }
+
+  diff -= shift_;
+
+  shift_ = bit_divider - (diff % bit_divider);
+  shift_ %= bit_divider;
+
+  data_ -= 1 + (diff / bit_divider);
+
+  return *this;
+}
+
+Vector<bool>::const_bit_iterator& Vector<bool>::const_bit_iterator::operator-=(
+    difference_type diff) {
+  if (shift_ >= diff) {
+    shift_ -= diff;
+
+    return *this;
+  }
+
+  diff -= shift_;
+
+  shift_ = bit_divider - (diff % bit_divider);
+  shift_ %= bit_divider;
+
+  data_ -= 1 + (diff / bit_divider);
+
+  return *this;
+}
+
+Vector<bool>::bit_iterator Vector<bool>::bit_iterator::operator+(
+    const difference_type diff) const {
+  bit_iterator temp = *this;
+  temp += diff;
+
+  return temp;
+}
+
+Vector<bool>::const_bit_iterator Vector<bool>::const_bit_iterator::operator+(
+    const difference_type diff) const {
+  const_bit_iterator temp = *this;
+  temp += diff;
+
+  return temp;
+}
+
+Vector<bool>::bit_iterator Vector<bool>::bit_iterator::operator-(
+    const difference_type diff) const {
+  bit_iterator temp = *this;
+  temp -= diff;
+
+  return temp;
+}
+
+Vector<bool>::const_bit_iterator Vector<bool>::const_bit_iterator::operator-(
+    const difference_type diff) const {
+  const_bit_iterator temp = *this;
+  temp -= diff;
+
+  return temp;
+}
+
+Vector<bool>::bit_iterator::difference_type
+Vector<bool>::bit_iterator::operator-(const bit_iterator& it) const {
+  const uint64_t* min_data = std::min(data_, it.data_);
+
+  difference_type idx1 = (data_ - min_data) * bit_divider + shift_;
+  difference_type idx2 = (it.data_ - min_data) * bit_divider + it.shift_;
+
+  return idx1 - idx2;
+}
+
+Vector<bool>::const_bit_iterator::difference_type Vector<
+    bool>::const_bit_iterator::operator-(const const_bit_iterator& it) const {
+  const uint64_t* min_data = std::min(data_, it.data_);
+
+  difference_type idx1 = (data_ - min_data) * bit_divider + shift_;
+  difference_type idx2 = (it.data_ - min_data) * bit_divider + it.shift_;
+
+  return idx1 - idx2;
+}
+
+Vector<bool>::bit_iterator::reference Vector<bool>::bit_iterator::operator[](
+    const difference_type diff) const {
+  return *(*this + diff);
+}
+
+Vector<bool>::const_bit_iterator::reference
+Vector<bool>::const_bit_iterator::operator[](const difference_type diff) const {
+  return *(*this + diff);
+}
+
+Vector<bool>::BitRef::BitRef() : data_(nullptr), shift_(0) {}
+
+Vector<bool>::ConstBitRef::ConstBitRef() : data_(nullptr), shift_(0) {}
+
+Vector<bool>::BitRef::BitRef(uint64_t* data, const uint64_t shift)
+    : data_(data), shift_(shift) {}
+
+Vector<bool>::ConstBitRef::ConstBitRef(const uint64_t* data,
+                                       const uint64_t shift)
+    : data_(data), shift_(shift) {}
+
+bool Vector<bool>::BitRef::operator==(const BitRef& it) const {
+  return bool(*this) == bool(it);
+}
+
+bool Vector<bool>::ConstBitRef::operator==(const ConstBitRef& it) const {
+  return bool(*this) == bool(it);
+}
+
+bool Vector<bool>::BitRef::operator!=(const BitRef& it) const {
+  return bool(*this) != bool(it);
+}
+
+bool Vector<bool>::ConstBitRef::operator!=(const ConstBitRef& it) const {
+  return bool(*this) != bool(it);
+}
+
+bool Vector<bool>::BitRef::operator<(const BitRef& it) const {
+  return bool(*this) < bool(it);
+}
+
+bool Vector<bool>::ConstBitRef::operator<(const ConstBitRef& it) const {
+  return bool(*this) < bool(it);
+}
+
+bool Vector<bool>::BitRef::operator>(const BitRef& it) const {
+  return bool(*this) > bool(it);
+}
+
+bool Vector<bool>::ConstBitRef::operator>(const ConstBitRef& it) const {
+  return bool(*this) > bool(it);
+}
+
+bool Vector<bool>::BitRef::operator>=(const BitRef& it) const {
+  return bool(*this) >= bool(it);
+}
+
+bool Vector<bool>::ConstBitRef::operator>=(const ConstBitRef& it) const {
+  return bool(*this) >= bool(it);
+}
+
+bool Vector<bool>::BitRef::operator<=(const BitRef& it) const {
+  return bool(*this) <= bool(it);
+}
+
+bool Vector<bool>::ConstBitRef::operator<=(const ConstBitRef& it) const {
+  return bool(*this) <= bool(it);
+}
+
+
+Vector<bool>::BitRef& Vector<bool>::BitRef::operator=(const bool elem) {
+  if (elem == 0) {
+    *data_ &= ~(1ull <<shift_);
+  } else {
+    *data_ |= (1ull <<shift_);
+  }
+
+  return *this;
+}
+
+Vector<bool>::BitRef::operator bool() const {
+  return ((*data_) & (1ull << shift_)) >> shift_;
+}
+
+Vector<bool>::ConstBitRef::operator bool() const {
+  return ((*data_) & (1ull << shift_)) >> shift_;
 }
 
 Vector<bool>::Vector() : size_(0), capacity_(0), data_(nullptr) {}
@@ -195,4 +544,18 @@ uint64_t Vector<bool>::GetBitSize(const uint64_t bits_amount) {
   }
 
   return ((bits_amount - 1) / bit_divider) + 1;
+}
+
+Vector<bool>::bit_iterator Vector<bool>::begin() { return {data_, 0}; }
+
+Vector<bool>::bit_iterator Vector<bool>::end() {
+  return {data_ + GetBitIdx(size_), size_ % bit_divider};
+}
+
+Vector<bool>::const_bit_iterator Vector<bool>::cbegin() const {
+  return {data_, 0};
+}
+
+Vector<bool>::const_bit_iterator Vector<bool>::cend() const {
+  return {data_ + GetBitIdx(size_), size_ % bit_divider};
 }

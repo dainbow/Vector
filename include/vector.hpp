@@ -150,106 +150,148 @@ class Vector {
 
 template <>
 class Vector<bool> {
-  class bit_iterator {
-   public:
-    using iterator_category = std::random_access_iterator_tag;
-    using difference_type = std::ptrdiff_t;
-    using value_type = bool;
-
-    iterator();
-    iterator(T* ptr);
-    iterator(iterator&& it) = default;
-    iterator(const iterator& it) = default;
-
-    ~iterator() = default;
-
-    iterator& operator=(iterator&& it) = default;
-    iterator& operator=(const iterator& it) = default;
-
-    bool operator==(const iterator& it) const;
-    bool operator!=(const iterator& it) const;
-    bool operator<(const iterator& it) const;
-    bool operator>(const iterator& it) const;
-    bool operator>=(const iterator& it) const;
-    bool operator<=(const iterator& it) const;
-
-    T& operator*() const;
-
-    iterator& operator++();
-    iterator operator++(int);
-
-    iterator& operator--();
-    iterator operator--(int);
-
-    iterator& operator+=(const std::ptrdiff_t diff);
-    iterator& operator-=(const std::ptrdiff_t diff);
-
-    iterator operator+(const std::ptrdiff_t diff) const;
-    iterator operator-(const std::ptrdiff_t diff) const;
-
-    std::ptrdiff_t operator-(const iterator& it) const;
-
-    T& operator[](const std::ptrdiff_t diff) const;
-
-   private:
-    T* ptr_;
-  };
-
-  class const_iterator
-      : public std::iterator<std::random_access_iterator_tag, T> {
-   public:
-    const_iterator();
-    const_iterator(const T* ptr);
-    const_iterator(const_iterator&& it) = default;
-    const_iterator(const const_iterator& it) = default;
-
-    ~const_iterator() = default;
-
-    const_iterator& operator=(const_iterator&& it) = default;
-    const_iterator& operator=(const const_iterator& it) = default;
-
-    bool operator==(const const_iterator& it) const;
-    bool operator!=(const const_iterator& it) const;
-    bool operator<(const const_iterator& it) const;
-    bool operator>(const const_iterator& it) const;
-    bool operator>=(const const_iterator& it) const;
-    bool operator<=(const const_iterator& it) const;
-
-    const T& operator*() const;
-
-    const_iterator& operator++();
-    const_iterator operator++(int);
-
-    const_iterator& operator--();
-    const_iterator operator--(int);
-
-    const_iterator& operator+=(const std::ptrdiff_t diff);
-    const_iterator& operator-=(const std::ptrdiff_t diff);
-
-    const_iterator operator+(const std::ptrdiff_t diff) const;
-    const_iterator operator-(const std::ptrdiff_t diff) const;
-
-    std::ptrdiff_t operator-(const const_iterator& it) const;
-
-    const T& operator[](const std::ptrdiff_t diff) const;
-
-   private:
-    const T* ptr_;
-  };
-
+ public:
   class BitRef {
    public:
-    BitRef(uint64_t* data, const uint8_t shift);
+    BitRef();
+    BitRef(uint64_t* data, const uint64_t shift);
+    BitRef(const BitRef& ref) = default;
+    BitRef(BitRef&& ref) = default;
+
+    BitRef& operator=(const BitRef& ref) = default;
+    BitRef& operator=(BitRef&& ref) = default;
+    
+    bool operator==(const BitRef& it) const;
+    bool operator!=(const BitRef& it) const;
+    bool operator<(const BitRef& it) const;
+    bool operator>(const BitRef& it) const;
+    bool operator>=(const BitRef& it) const;
+    bool operator<=(const BitRef& it) const;
 
     BitRef& operator=(const bool element);
-    operator bool();
+    operator bool() const;
 
-   private:
+   protected:
     uint64_t* data_;
-    uint8_t shift_;
+    uint64_t shift_;
   };
 
- public:
+  class ConstBitRef {
+   public:
+    ConstBitRef();
+    ConstBitRef(const uint64_t* data, const uint64_t shift);
+    ConstBitRef(const ConstBitRef& ref) = default;
+    ConstBitRef(ConstBitRef&& ref) = default;
+
+    ConstBitRef& operator=(const ConstBitRef& ref) = default;
+    ConstBitRef& operator=(ConstBitRef&& ref) = default;
+
+    bool operator==(const ConstBitRef& it) const;
+    bool operator!=(const ConstBitRef& it) const;
+    bool operator<(const ConstBitRef& it) const;
+    bool operator>(const ConstBitRef& it) const;
+    bool operator>=(const ConstBitRef& it) const;
+    bool operator<=(const ConstBitRef& it) const;
+    
+    operator bool() const;
+
+   protected:
+    const uint64_t* data_;
+    uint64_t shift_;
+  };
+
+  class bit_iterator : public BitRef {
+   public:
+    using iterator_category = std::random_access_iterator_tag;
+    using difference_type = std::size_t;
+    using value_type = bool;
+    using reference = BitRef&;
+    using pointer = BitRef*;
+
+    bit_iterator();
+    bit_iterator(uint64_t* ptr, uint64_t shift);
+    bit_iterator(const BitRef& ref);
+    bit_iterator(pointer ptr);
+    bit_iterator(bit_iterator&& it) = default;
+    bit_iterator(const bit_iterator& it) = default;
+
+    ~bit_iterator() = default;
+
+    bit_iterator& operator=(bit_iterator&& it) = default;
+    bit_iterator& operator=(const bit_iterator& it) = default;
+
+    bool operator==(const bit_iterator& it) const;
+    bool operator!=(const bit_iterator& it) const;
+    bool operator<(const bit_iterator& it) const;
+    bool operator>(const bit_iterator& it) const;
+    bool operator>=(const bit_iterator& it) const;
+    bool operator<=(const bit_iterator& it) const;
+
+    reference operator*();
+
+    bit_iterator& operator++();
+    bit_iterator operator++(int);
+
+    bit_iterator& operator--();
+    bit_iterator operator--(int);
+
+    bit_iterator& operator+=(difference_type diff);
+    bit_iterator& operator-=(difference_type diff);
+
+    bit_iterator operator+(const difference_type diff) const;
+    bit_iterator operator-(const difference_type diff) const;
+
+    difference_type operator-(const bit_iterator& it) const;
+
+    reference operator[](const difference_type diff) const;
+  };
+
+  class const_bit_iterator : public ConstBitRef {
+   public:
+    using iterator_category = std::random_access_iterator_tag;
+    using difference_type = std::size_t;
+    using value_type = bool;
+    using reference = ConstBitRef;
+    using pointer = ConstBitRef*;
+
+    const_bit_iterator();
+    const_bit_iterator(const uint64_t* ptr, uint64_t shift);
+    const_bit_iterator(const ConstBitRef& ref);
+    const_bit_iterator(pointer ptr);
+    const_bit_iterator(const_bit_iterator&& it) = default;
+    const_bit_iterator(const const_bit_iterator& it) = default;
+
+    ~const_bit_iterator() = default;
+
+    const_bit_iterator& operator=(const_bit_iterator&& it) = default;
+    const_bit_iterator& operator=(const const_bit_iterator& it) = default;
+
+    bool operator==(const const_bit_iterator& it) const;
+    bool operator!=(const const_bit_iterator& it) const;
+    bool operator<(const const_bit_iterator& it) const;
+    bool operator>(const const_bit_iterator& it) const;
+    bool operator>=(const const_bit_iterator& it) const;
+    bool operator<=(const const_bit_iterator& it) const;
+
+    reference operator*() const;
+
+    const_bit_iterator& operator++();
+    const_bit_iterator operator++(int);
+
+    const_bit_iterator& operator--();
+    const_bit_iterator operator--(int);
+
+    const_bit_iterator& operator+=(difference_type diff);
+    const_bit_iterator& operator-=(difference_type diff);
+
+    const_bit_iterator operator+(const difference_type diff) const;
+    const_bit_iterator operator-(const difference_type diff) const;
+
+    difference_type operator-(const const_bit_iterator& it) const;
+
+    reference operator[](const difference_type diff) const;
+  };
+
   Vector();
 
   explicit Vector(const uint64_t size, bool elem);
@@ -286,6 +328,12 @@ class Vector<bool> {
 
   BitRef back();
   const BitRef back() const;
+
+  bit_iterator begin();
+  bit_iterator end();
+
+  const_bit_iterator cbegin() const;
+  const_bit_iterator cend() const;
 
  private:
   static uint64_t GetBitIdx(const uint64_t bit_number);
@@ -443,24 +491,32 @@ template <typename T>
 Vector<T>::iterator& Vector<T>::iterator::operator+=(
     const std::ptrdiff_t diff) {
   ptr_ += diff;
+
+  return *this;
 }
 
 template <typename T>
 Vector<T>::const_iterator& Vector<T>::const_iterator::operator+=(
     const std::ptrdiff_t diff) {
   ptr_ += diff;
+
+  return *this;
 }
 
 template <typename T>
 Vector<T>::iterator& Vector<T>::iterator::operator-=(
     const std::ptrdiff_t diff) {
   ptr_ -= diff;
+
+  return *this;
 }
 
 template <typename T>
 Vector<T>::const_iterator& Vector<T>::const_iterator::operator-=(
     const std::ptrdiff_t diff) {
   ptr_ -= diff;
+
+  return *this;
 }
 
 template <typename T>
