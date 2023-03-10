@@ -4,10 +4,11 @@
 #include <cassert>
 #include <cstdint>
 
+#include "memory.hpp"
 #include "utilities.hpp"
 
-template <typename T>
-class Vector {
+template <typename T, template <typename> class Memory = EmptyMemory>
+class Vector : public Memory<T> {
   class iterator : public std::iterator<std::random_access_iterator_tag, T> {
    public:
     iterator();
@@ -96,11 +97,11 @@ class Vector {
 
   explicit Vector(const uint64_t size, T&& elem = T());
 
-  Vector(const Vector<T>& vector);
-  Vector(Vector<T>&& vector);
+  Vector(const Vector<T, Memory>& vector);
+  Vector(Vector<T, Memory>&& vector);
 
-  Vector<T>& operator=(const Vector<T>& vector);
-  Vector<T>& operator=(Vector<T>&& vector);
+  Vector<T, Memory>& operator=(const Vector<T, Memory>& vector);
+  Vector<T, Memory>& operator=(Vector<T, Memory>&& vector);
 
   ~Vector();
 
@@ -129,9 +130,6 @@ class Vector {
   T& back();
   const T& back() const;
 
-  T* data();
-  const T* data() const;
-
   iterator begin();
   iterator end();
 
@@ -144,8 +142,6 @@ class Vector {
 
   uint64_t size_;
   uint64_t capacity_;
-
-  char* data_;
 };
 
 template <>
@@ -160,7 +156,7 @@ class Vector<bool> {
 
     BitRef& operator=(const BitRef& ref) = default;
     BitRef& operator=(BitRef&& ref) = default;
-    
+
     bool operator==(const BitRef& it) const;
     bool operator!=(const BitRef& it) const;
     bool operator<(const BitRef& it) const;
@@ -192,7 +188,7 @@ class Vector<bool> {
     bool operator>(const ConstBitRef& it) const;
     bool operator>=(const ConstBitRef& it) const;
     bool operator<=(const ConstBitRef& it) const;
-    
+
     operator bool() const;
 
    protected:
@@ -349,178 +345,188 @@ class Vector<bool> {
   uint64_t* data_;
 };
 
-template <typename T>
-Vector<T>::iterator::iterator() : ptr_(nullptr) {}
+template <typename T, template <typename> class Memory>
+Vector<T, Memory>::iterator::iterator() : ptr_(nullptr) {}
 
-template <typename T>
-Vector<T>::const_iterator::const_iterator() : ptr_(nullptr) {}
+template <typename T, template <typename> class Memory>
+Vector<T, Memory>::const_iterator::const_iterator() : ptr_(nullptr) {}
 
-template <typename T>
-Vector<T>::iterator::iterator(T* ptr) : ptr_(ptr) {}
+template <typename T, template <typename> class Memory>
+Vector<T, Memory>::iterator::iterator(T* ptr) : ptr_(ptr) {}
 
-template <typename T>
-Vector<T>::const_iterator::const_iterator(const T* ptr) : ptr_(ptr) {}
+template <typename T, template <typename> class Memory>
+Vector<T, Memory>::const_iterator::const_iterator(const T* ptr) : ptr_(ptr) {}
 
-template <typename T>
-bool Vector<T>::iterator::operator==(const iterator& it) const {
+template <typename T, template <typename> class Memory>
+bool Vector<T, Memory>::iterator::operator==(const iterator& it) const {
   return ptr_ == it.ptr_;
 }
 
-template <typename T>
-bool Vector<T>::const_iterator::operator==(const const_iterator& it) const {
+template <typename T, template <typename> class Memory>
+bool Vector<T, Memory>::const_iterator::operator==(
+    const const_iterator& it) const {
   return ptr_ == it.ptr_;
 }
 
-template <typename T>
-bool Vector<T>::iterator::operator!=(const iterator& it) const {
+template <typename T, template <typename> class Memory>
+bool Vector<T, Memory>::iterator::operator!=(const iterator& it) const {
   return ptr_ != it.ptr_;
 }
 
-template <typename T>
-bool Vector<T>::const_iterator::operator!=(const const_iterator& it) const {
+template <typename T, template <typename> class Memory>
+bool Vector<T, Memory>::const_iterator::operator!=(
+    const const_iterator& it) const {
   return ptr_ != it.ptr_;
 }
 
-template <typename T>
-bool Vector<T>::iterator::operator<(const iterator& it) const {
+template <typename T, template <typename> class Memory>
+bool Vector<T, Memory>::iterator::operator<(const iterator& it) const {
   return ptr_ < it.ptr_;
 }
 
-template <typename T>
-bool Vector<T>::const_iterator::operator<(const const_iterator& it) const {
+template <typename T, template <typename> class Memory>
+bool Vector<T, Memory>::const_iterator::operator<(
+    const const_iterator& it) const {
   return ptr_ < it.ptr_;
 }
 
-template <typename T>
-bool Vector<T>::iterator::operator>(const iterator& it) const {
+template <typename T, template <typename> class Memory>
+bool Vector<T, Memory>::iterator::operator>(const iterator& it) const {
   return ptr_ > it.ptr_;
 }
 
-template <typename T>
-bool Vector<T>::const_iterator::operator>(const const_iterator& it) const {
+template <typename T, template <typename> class Memory>
+bool Vector<T, Memory>::const_iterator::operator>(
+    const const_iterator& it) const {
   return ptr_ > it.ptr_;
 }
 
-template <typename T>
-bool Vector<T>::iterator::operator>=(const iterator& it) const {
+template <typename T, template <typename> class Memory>
+bool Vector<T, Memory>::iterator::operator>=(const iterator& it) const {
   return ptr_ >= it.ptr_;
 }
 
-template <typename T>
-bool Vector<T>::const_iterator::operator>=(const const_iterator& it) const {
+template <typename T, template <typename> class Memory>
+bool Vector<T, Memory>::const_iterator::operator>=(
+    const const_iterator& it) const {
   return ptr_ >= it.ptr_;
 }
 
-template <typename T>
-bool Vector<T>::iterator::operator<=(const iterator& it) const {
+template <typename T, template <typename> class Memory>
+bool Vector<T, Memory>::iterator::operator<=(const iterator& it) const {
   return ptr_ <= it.ptr_;
 }
 
-template <typename T>
-bool Vector<T>::const_iterator::operator<=(const const_iterator& it) const {
+template <typename T, template <typename> class Memory>
+bool Vector<T, Memory>::const_iterator::operator<=(
+    const const_iterator& it) const {
   return ptr_ <= it.ptr_;
 }
 
-template <typename T>
-T& Vector<T>::iterator::operator*() const {
+template <typename T, template <typename> class Memory>
+T& Vector<T, Memory>::iterator::operator*() const {
   return *ptr_;
 }
 
-template <typename T>
-const T& Vector<T>::const_iterator::operator*() const {
+template <typename T, template <typename> class Memory>
+const T& Vector<T, Memory>::const_iterator::operator*() const {
   return *ptr_;
 }
 
-template <typename T>
-Vector<T>::iterator& Vector<T>::iterator::operator++() {
+template <typename T, template <typename> class Memory>
+Vector<T, Memory>::iterator& Vector<T, Memory>::iterator::operator++() {
   ++ptr_;
 
   return *this;
 }
 
-template <typename T>
-Vector<T>::const_iterator& Vector<T>::const_iterator::operator++() {
+template <typename T, template <typename> class Memory>
+Vector<T, Memory>::const_iterator&
+Vector<T, Memory>::const_iterator::operator++() {
   ++ptr_;
 
   return *this;
 }
 
-template <typename T>
-Vector<T>::iterator Vector<T>::iterator::operator++(int) {
+template <typename T, template <typename> class Memory>
+Vector<T, Memory>::iterator Vector<T, Memory>::iterator::operator++(int) {
   ptr_++;
 
   return *this;
 }
 
-template <typename T>
-Vector<T>::const_iterator Vector<T>::const_iterator::operator++(int) {
+template <typename T, template <typename> class Memory>
+Vector<T, Memory>::const_iterator Vector<T, Memory>::const_iterator::operator++(
+    int) {
   ptr_++;
 
   return *this;
 }
 
-template <typename T>
-Vector<T>::iterator& Vector<T>::iterator::operator--() {
+template <typename T, template <typename> class Memory>
+Vector<T, Memory>::iterator& Vector<T, Memory>::iterator::operator--() {
   --ptr_;
 
   return *this;
 }
 
-template <typename T>
-Vector<T>::const_iterator& Vector<T>::const_iterator::operator--() {
+template <typename T, template <typename> class Memory>
+Vector<T, Memory>::const_iterator&
+Vector<T, Memory>::const_iterator::operator--() {
   --ptr_;
 
   return *this;
 }
 
-template <typename T>
-Vector<T>::iterator Vector<T>::iterator::operator--(int) {
+template <typename T, template <typename> class Memory>
+Vector<T, Memory>::iterator Vector<T, Memory>::iterator::operator--(int) {
   ptr_--;
 
   return *this;
 }
 
-template <typename T>
-Vector<T>::const_iterator Vector<T>::const_iterator::operator--(int) {
+template <typename T, template <typename> class Memory>
+Vector<T, Memory>::const_iterator Vector<T, Memory>::const_iterator::operator--(
+    int) {
   ptr_--;
 
   return *this;
 }
 
-template <typename T>
-Vector<T>::iterator& Vector<T>::iterator::operator+=(
+template <typename T, template <typename> class Memory>
+Vector<T, Memory>::iterator& Vector<T, Memory>::iterator::operator+=(
     const std::ptrdiff_t diff) {
   ptr_ += diff;
 
   return *this;
 }
 
-template <typename T>
-Vector<T>::const_iterator& Vector<T>::const_iterator::operator+=(
-    const std::ptrdiff_t diff) {
+template <typename T, template <typename> class Memory>
+Vector<T, Memory>::const_iterator&
+Vector<T, Memory>::const_iterator::operator+=(const std::ptrdiff_t diff) {
   ptr_ += diff;
 
   return *this;
 }
 
-template <typename T>
-Vector<T>::iterator& Vector<T>::iterator::operator-=(
+template <typename T, template <typename> class Memory>
+Vector<T, Memory>::iterator& Vector<T, Memory>::iterator::operator-=(
     const std::ptrdiff_t diff) {
   ptr_ -= diff;
 
   return *this;
 }
 
-template <typename T>
-Vector<T>::const_iterator& Vector<T>::const_iterator::operator-=(
-    const std::ptrdiff_t diff) {
+template <typename T, template <typename> class Memory>
+Vector<T, Memory>::const_iterator&
+Vector<T, Memory>::const_iterator::operator-=(const std::ptrdiff_t diff) {
   ptr_ -= diff;
 
   return *this;
 }
 
-template <typename T>
-Vector<T>::iterator Vector<T>::iterator::operator+(
+template <typename T, template <typename> class Memory>
+Vector<T, Memory>::iterator Vector<T, Memory>::iterator::operator+(
     const std::ptrdiff_t diff) const {
   iterator temp = *this;
   temp += diff;
@@ -528,8 +534,8 @@ Vector<T>::iterator Vector<T>::iterator::operator+(
   return temp;
 }
 
-template <typename T>
-Vector<T>::const_iterator Vector<T>::const_iterator::operator+(
+template <typename T, template <typename> class Memory>
+Vector<T, Memory>::const_iterator Vector<T, Memory>::const_iterator::operator+(
     const std::ptrdiff_t diff) const {
   const_iterator temp = *this;
   temp += diff;
@@ -537,8 +543,8 @@ Vector<T>::const_iterator Vector<T>::const_iterator::operator+(
   return temp;
 }
 
-template <typename T>
-Vector<T>::iterator Vector<T>::iterator::operator-(
+template <typename T, template <typename> class Memory>
+Vector<T, Memory>::iterator Vector<T, Memory>::iterator::operator-(
     const std::ptrdiff_t diff) const {
   iterator temp = *this;
   temp -= diff;
@@ -546,8 +552,8 @@ Vector<T>::iterator Vector<T>::iterator::operator-(
   return temp;
 }
 
-template <typename T>
-Vector<T>::const_iterator Vector<T>::const_iterator::operator-(
+template <typename T, template <typename> class Memory>
+Vector<T, Memory>::const_iterator Vector<T, Memory>::const_iterator::operator-(
     const std::ptrdiff_t diff) const {
   const_iterator temp = *this;
   temp -= diff;
@@ -555,238 +561,228 @@ Vector<T>::const_iterator Vector<T>::const_iterator::operator-(
   return temp;
 }
 
-template <typename T>
-std::ptrdiff_t Vector<T>::iterator::operator-(const iterator& it) const {
+template <typename T, template <typename> class Memory>
+std::ptrdiff_t Vector<T, Memory>::iterator::operator-(
+    const iterator& it) const {
   return ptr_ - it.ptr_;
 }
 
-template <typename T>
-std::ptrdiff_t Vector<T>::const_iterator::operator-(
+template <typename T, template <typename> class Memory>
+std::ptrdiff_t Vector<T, Memory>::const_iterator::operator-(
     const const_iterator& it) const {
   return ptr_ - it.ptr_;
 }
 
-template <typename T>
-T& Vector<T>::iterator::operator[](const std::ptrdiff_t diff) const {
+template <typename T, template <typename> class Memory>
+T& Vector<T, Memory>::iterator::operator[](const std::ptrdiff_t diff) const {
   return ptr_[diff];
 }
 
-template <typename T>
-const T& Vector<T>::const_iterator::operator[](
+template <typename T, template <typename> class Memory>
+const T& Vector<T, Memory>::const_iterator::operator[](
     const std::ptrdiff_t diff) const {
   return ptr_[diff];
 }
 
-template <typename T>
-Vector<T>::Vector() : size_(0), capacity_(0), data_(nullptr) {}
+template <typename T, template <typename> class Memory>
+Vector<T, Memory>::Vector() : Memory<T>(0), size_(0), capacity_(0) {}
 
-template <typename T>
-Vector<T>::Vector(const uint64_t size, T&& elem)
-    : size_(size),
-      capacity_(base_capacity_multiplier_ * size),
-      data_(new char[capacity_ * sizeof(T)]()) {
-  Construct(data(), 0, size_, elem);
+template <typename T, template <typename> class Memory>
+Vector<T, Memory>::Vector(const uint64_t size, T&& elem)
+    : Memory<T>(size),
+      size_(size),
+      capacity_(base_capacity_multiplier_ * size) {
+  Construct(this->data(), 0, size_, elem);
 }
 
-template <typename T>
-Vector<T>::Vector(const Vector<T>& vector)
-    : size_(vector.size_),
-      capacity_(vector.capacity_),
-      data_(new char[vector.capacity_ * sizeof(T)]()) {
-  Construct(data(), 0, size_, vector.data());
+template <typename T, template <typename> class Memory>
+Vector<T, Memory>::Vector(const Vector<T, Memory>& vector)
+    : Memory<T>(vector.capacity_),
+      size_(vector.size_),
+      capacity_(vector.capacity_) {
+  Construct(this->data(), 0, size_, vector.data());
 }
 
-template <typename T>
-Vector<T>::Vector(Vector<T>&& vector)
-    : size_(vector.size_), capacity_(vector.capacity_), data_(nullptr) {
-  std::swap(data_, vector.data_);
-}
+template <typename T, template <typename> class Memory>
+Vector<T, Memory>::Vector(Vector<T, Memory>&& vector)
+    : Memory<T>(std::forward<decltype(vector)>(vector)),
+      size_(vector.size_),
+      capacity_(vector.capacity_) {}
 
-template <typename T>
-Vector<T>& Vector<T>::operator=(const Vector<T>& vector) {
+template <typename T, template <typename> class Memory>
+Vector<T, Memory>& Vector<T, Memory>::operator=(
+    const Vector<T, Memory>& vector) {
   if (vector.size_ < size_) {
-    Assign(data(), 0, vector.size_, vector.data());
-    Destruct(data(), vector.size_, size_);
+    Assign(this->data(), 0, vector.size_, vector.data());
+    Destruct(this->data(), vector.size_, size_);
   } else {
     reserve(vector.size_);
 
-    Assign(data(), 0, size_, vector.data());
-    Construct(data(), size_, vector.size_, vector.data());
+    Assign(this->data(), 0, size_, vector.data());
+    Construct(this->data(), size_, vector.size_, vector.data());
   }
 
   size_ = vector.size_;
 }
 
-template <typename T>
-Vector<T>& Vector<T>::operator=(Vector<T>&& vector) {
+template <typename T, template <typename> class Memory>
+Vector<T, Memory>& Vector<T, Memory>::operator=(Vector<T, Memory>&& vector) {
   ~Vector();
-  Vector(std::forward<Vector<T>>(vector));
+  Vector(std::forward<Vector<T, Memory>>(vector));
 }
 
-template <typename T>
-Vector<T>::~Vector() {
-  if (data_) {
-    Destruct(data(), 0, size_);
-    delete[] data_;
+template <typename T, template <typename> class Memory>
+Vector<T, Memory>::~Vector() {
+  if (this->data()) {
+    Destruct(this->data(), 0, size_);
   }
 
   size_ = 0;
   capacity_ = 0;
-  data_ = nullptr;
 }
 
-template <typename T>
-bool Vector<T>::empty() const {
+template <typename T, template <typename> class Memory>
+bool Vector<T, Memory>::empty() const {
   return (size_ == 0);
 }
 
-template <typename T>
-uint64_t Vector<T>::size() const {
+template <typename T, template <typename> class Memory>
+uint64_t Vector<T, Memory>::size() const {
   return size_;
 }
 
-template <typename T>
-uint64_t Vector<T>::capacity() const {
+template <typename T, template <typename> class Memory>
+uint64_t Vector<T, Memory>::capacity() const {
   return capacity_;
 }
 
-template <typename T>
-void Vector<T>::reserve(uint64_t new_capacity) {
+template <typename T, template <typename> class Memory>
+void Vector<T, Memory>::reserve(uint64_t new_capacity) {
   if (new_capacity <= capacity_) {
     return;
   }
 
   new_capacity = std::max(new_capacity, capacity_ * base_capacity_multiplier_);
 
-  data_ = Realloc(data(), size_, new_capacity);
+  this->Realloc(size_, new_capacity);
   capacity_ = new_capacity;
 }
 
-template <typename T>
-void Vector<T>::resize(const uint64_t new_size, T&& elem) {
+template <typename T, template <typename> class Memory>
+void Vector<T, Memory>::resize(const uint64_t new_size, T&& elem) {
   if (new_size < size_) {
-    Destruct(data(), new_size, size_);
+    Destruct(this->data(), new_size, size_);
   } else {
     reserve(new_size);
 
-    Construct(data(), size_, new_size, elem);
+    Construct(this->data(), size_, new_size, elem);
   }
 
   size_ = new_size;
 }
 
-template <typename T>
-void Vector<T>::shrink_to_fit() {
+template <typename T, template <typename> class Memory>
+void Vector<T, Memory>::shrink_to_fit() {
   if (size_ == capacity_) {
     return;
   }
 
-  data_ = Realloc(data(), size_, size_);
+  this->Realloc(size_, size_);
   capacity_ = size_;
 }
 
-template <typename T>
-void Vector<T>::clear() {
-  Destruct(data(), 0, size_);
+template <typename T, template <typename> class Memory>
+void Vector<T, Memory>::clear() {
+  Destruct(this->data(), 0, size_);
   size_ = 0;
 }
 
-template <typename T>
-void Vector<T>::push_back(T&& element) {
+template <typename T, template <typename> class Memory>
+void Vector<T, Memory>::push_back(T&& element) {
   if (capacity_ == 0) {
     reserve(base_capacity);
   } else {
     reserve(size_ + 1);
   }
 
-  data()[size_++] = std::forward<T>(element);
+  this->data()[size_++] = std::forward<T>(element);
 }
 
-template <typename T>
-void Vector<T>::pop_back() {
+template <typename T, template <typename> class Memory>
+void Vector<T, Memory>::pop_back() {
   assert(size_);
 
-  data()[--size_].~T();
+  this->data()[--size_].~T();
 }
 
-template <typename T>
-T& Vector<T>::at(const uint64_t idx) {
+template <typename T, template <typename> class Memory>
+T& Vector<T, Memory>::at(const uint64_t idx) {
   assert(idx < size_);
 
-  return data()[idx];
+  return this->data()[idx];
 }
 
-template <typename T>
-const T& Vector<T>::at(const uint64_t idx) const {
+template <typename T, template <typename> class Memory>
+const T& Vector<T, Memory>::at(const uint64_t idx) const {
   assert(idx < size_);
 
-  return data()[idx];
+  return this->data()[idx];
 }
 
-template <typename T>
-T& Vector<T>::operator[](const uint64_t idx) {
-  return data()[idx];
+template <typename T, template <typename> class Memory>
+T& Vector<T, Memory>::operator[](const uint64_t idx) {
+  return this->data()[idx];
 }
 
-template <typename T>
-const T& Vector<T>::operator[](const uint64_t idx) const {
-  return data()[idx];
+template <typename T, template <typename> class Memory>
+const T& Vector<T, Memory>::operator[](const uint64_t idx) const {
+  return this->data()[idx];
 }
 
-template <typename T>
-T& Vector<T>::front() {
+template <typename T, template <typename> class Memory>
+T& Vector<T, Memory>::front() {
   assert(size_);
 
-  return data()[0];
+  return this->data()[0];
 }
 
-template <typename T>
-const T& Vector<T>::front() const {
+template <typename T, template <typename> class Memory>
+const T& Vector<T, Memory>::front() const {
   assert(size_);
 
-  return data()[0];
+  return this->data()[0];
 }
 
-template <typename T>
-T& Vector<T>::back() {
+template <typename T, template <typename> class Memory>
+T& Vector<T, Memory>::back() {
   assert(size_);
 
-  return data()[size_ - 1];
+  return this->data()[size_ - 1];
 }
 
-template <typename T>
-const T& Vector<T>::back() const {
+template <typename T, template <typename> class Memory>
+const T& Vector<T, Memory>::back() const {
   assert(size_);
 
-  return data()[size_ - 1];
+  return this->data()[size_ - 1];
 }
 
-template <typename T>
-T* Vector<T>::data() {
-  return reinterpret_cast<T*>(data_);
+template <typename T, template <typename> class Memory>
+Vector<T, Memory>::iterator Vector<T, Memory>::begin() {
+  return {this->data()};
 }
 
-template <typename T>
-const T* Vector<T>::data() const {
-  return reinterpret_cast<const T*>(data_);
+template <typename T, template <typename> class Memory>
+Vector<T, Memory>::iterator Vector<T, Memory>::end() {
+  return {this->data() + size_};
 }
 
-template <typename T>
-Vector<T>::iterator Vector<T>::begin() {
-  return {data()};
+template <typename T, template <typename> class Memory>
+Vector<T, Memory>::const_iterator Vector<T, Memory>::cbegin() const {
+  return {this->data()};
 }
 
-template <typename T>
-Vector<T>::iterator Vector<T>::end() {
-  return {data() + size_};
-}
-
-template <typename T>
-Vector<T>::const_iterator Vector<T>::cbegin() const {
-  return {data()};
-}
-
-template <typename T>
-Vector<T>::const_iterator Vector<T>::cend() const {
-  return {data() + size_};
+template <typename T, template <typename> class Memory>
+Vector<T, Memory>::const_iterator Vector<T, Memory>::cend() const {
+  return {this->data() + size_};
 }

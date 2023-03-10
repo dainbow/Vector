@@ -56,15 +56,15 @@ void MoveAssign(T* data, const uint64_t from, const uint64_t to, T* elements) {
   }
 }
 
-template <class T>
-char* Realloc(T* old_data, const uint64_t size, const uint64_t new_capacity) {
-  char* new_data = new char[new_capacity * sizeof(T)]();
-  T* converted_new_data = reinterpret_cast<T*>(new_data);
+// template <class T>
+// char* Realloc(T* old_data, const uint64_t size, const uint64_t new_capacity) {
+//   char* new_data = new char[new_capacity * sizeof(T)]();
+//   T* converted_new_data = reinterpret_cast<T*>(new_data);
 
-  MoveConstruct(converted_new_data, 0, size, old_data);
-  Destruct(old_data, 0, size);
+//   MoveConstruct(converted_new_data, 0, size, old_data);
+//   Destruct(old_data, 0, size);
 
-  delete[] reinterpret_cast<char*>(old_data);
+//   delete[] reinterpret_cast<char*>(old_data);
 
-  return new_data;
-}
+//   return new_data;
+// }
