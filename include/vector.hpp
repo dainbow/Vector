@@ -7,7 +7,7 @@
 #include "memory.hpp"
 #include "utilities.hpp"
 
-template <typename T, template <typename> class Memory = EmptyMemory>
+template <typename T, template <typename> class Memory = DefaultMemory>
 class Vector : public Memory<T> {
   class iterator : public std::iterator<std::random_access_iterator_tag, T> {
    public:
