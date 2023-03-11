@@ -4,6 +4,7 @@
 
 #include "stack_pool.hpp"
 #include "page_pool.hpp"
+#include "printf.hpp"
 
 #include "allocators.hpp"
 

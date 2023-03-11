@@ -2,19 +2,16 @@
 
 #include <iostream>
 
-void Print(const char* format) {
-  std::cout << format;
-}
+void Print(const char* format);
 
 template <typename T, typename... ArgsT>
 void Print(const char* format, T arg, ArgsT... args) {
-  while (*format != '%') {
+  while ((*format != '%') && (*format != '\0')) {
     std::putchar(*format++);
   }
 
   if (*format == '%') {
     std::cout << arg;
-    sizeof...(args);
 
     format++;
     Print(format, args...);

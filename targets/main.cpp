@@ -20,7 +20,7 @@ int main() {
 
   std::sort(vector.begin(), vector.end());
   for (auto& elem : vector) {
-    std::cout << elem << " ";
+    Print("% ", elem);
   }
   std::cout << std::endl;
 
@@ -29,7 +29,7 @@ int main() {
 
   std::sort(vect.begin(), vect.end());
   for (auto& elem : vect) {
-    std::cout << elem << " ";
+    Print("% ", elem);
   }
   std::cout << std::endl;
 
